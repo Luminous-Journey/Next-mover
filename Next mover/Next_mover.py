@@ -1,4 +1,3 @@
-from logging import PlaceHolder
 from time import sleep, ctime, time
 import PySimpleGUI as psg
 import numpy as np
@@ -9,15 +8,30 @@ import keyboard
 import os
 
 os.system("title Next by Luminous_Journey")
+def color(text):
+    os.system(""); faded = ""
+    for line in text.splitlines():
+        green = 250
+        blue = 250
+        for character in line:
+            green -= 5
+            blue -= 5
+            if green < 0:
+                green = 0
+            if blue < 0:
+                blue = 0 
+            faded += (f"\033[38;2;255;{blue};0m{character}\033[0m")
+        faded += "\n"
+    return faded
 
-print(f'''
+print(color(f'''
        ___         ___  ___   ___   ___  ___   ___ 
   .'| |   |   .'|=|_.' |   | |   | `._|=|   |=|_.' 
 .'  |\|   | .'  |  ___ `.  | |  .'      |   |      
 |   | |   | |   |=|_.'  .` |=| `.       |   |      
 |   | |  .' |   |  ___ |   | |   |      `.  |      
 |___| |.'   |___|=|_.' |___| |___|        `.|      
-''')
+'''))
 
 def get_png_files_from_directory(directory):
     png_files = []
@@ -58,15 +72,13 @@ while True:
         break
         
 
-
 window.close()
 template = np.array(Image.open(next).convert('L'))
-image = np.array(pygui.screenshot().convert('L'))
-result = match_template(image, template)
-locations = np.where(result >= 0.9)
 
 while True:
-
+    image = np.array(pygui.screenshot().convert('L'))
+    result = match_template(image, template)
+    locations = np.where(result >= 0.9)
     if len(locations[0]) > 0:
         top_left = (locations[1][0], locations[0][0])
         bottom_right = (top_left[0] + template.shape[1], top_left[1] + template.shape[0])
