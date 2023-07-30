@@ -30,9 +30,8 @@ psg.theme('Black')
 lst = psg.Combo([], font=('CC Wild Words', 14), expand_x=True, enable_events=True, readonly=True, key='Name')
 layout = [
     [psg.Text('Please select a directory')],
-    [psg.Input(key='-FOLDER-', readonly=True), psg.FolderBrowse()], 
+    [psg.Input(key='-FOLDER-', readonly=True, enable_events=True), psg.FolderBrowse()], 
     [lst], 
-    [psg.Button('Open Folder'), psg.Button('Okay')]
 ]
 
 window = psg.Window('Selection window', layout)
@@ -43,14 +42,14 @@ while True:
     if event == psg.WIN_CLOSED:
         window.close()
         exit("The selection window was closed")
-    elif event == "Open Folder":
+    elif event == "-FOLDER-":
         directory = values['-FOLDER-'] + "//"
         png_files = get_png_files_from_directory(directory)
         names = [sub.replace(directory, '') for sub in png_files]
         names = [sub.replace('.png', '') for sub in names]
         window['Name'].update(values=names)
         
-    elif event == 'Okay':
+    elif event == 'Name':
         for x in range(0, len(names)):
             if values['Name'] == names[int(x)]:
                 next = png_files[int(x)]
