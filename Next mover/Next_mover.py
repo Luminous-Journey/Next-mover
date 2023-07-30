@@ -1,4 +1,3 @@
-from logging import PlaceHolder
 from time import sleep, ctime, time
 import PySimpleGUI as psg
 import numpy as np
