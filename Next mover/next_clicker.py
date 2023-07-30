@@ -1,30 +1,32 @@
+'''moves my mouse and clicks for me'''
 from time import sleep, ctime, time
+import os
 import PySimpleGUI as psg
 import numpy as np
 from PIL import Image
 from skimage.feature import match_template
 import pyautogui as pygui
 import keyboard
-import os
+
 
 os.system("title Next by Luminous_Journey")
 def color(text):
-    os.system(""); faded = ""
+    '''Adds color to banner'''
+    os.system("")
+    faded = ""
     for line in text.splitlines():
         green = 250
         blue = 250
         for character in line:
             green -= 5
             blue -= 5
-            if green < 0:
-                green = 0
-            if blue < 0:
-                blue = 0 
+            green = max(green, 0)
+            blue = max(blue, 0)
             faded += (f"\033[38;2;255;{blue};0m{character}\033[0m")
         faded += "\n"
     return faded
 
-print(color(f'''
+print(color(r'''
        ___         ___  ___   ___   ___  ___   ___ 
   .'| |   |   .'|=|_.' |   | |   | `._|=|   |=|_.' 
 .'  |\|   | .'  |  ___ `.  | |  .'      |   |      
@@ -33,49 +35,52 @@ print(color(f'''
 |___| |.'   |___|=|_.' |___| |___|        `.|      
 '''))
 
-def get_png_files_from_directory(directory):
+def get_png_files_from_directory(path):
+    '''parses file path for files'''
     png_files = []
-    for file in os.listdir(directory):
+    for file in os.listdir(path):
         if file.lower().endswith('.png'):
-            png_files.append(os.path.join(directory, file))
+            png_files.append(os.path.join(path, file))
     return png_files
 
 psg.theme('Black')
-lst = psg.Combo([], font=('CC Wild Words', 14), expand_x=True, enable_events=True, readonly=True, key='Name')
+psg.set_options(font=('Times New Roman', 14))
+lst = psg.Combo([], expand_x=True, enable_events=True, readonly=True, key='Name')
 layout = [
     [psg.Text('Please select a directory')],
-    [psg.Input(key='-FOLDER-', readonly=True, enable_events=True), psg.FolderBrowse()], 
-    [lst], 
+    [psg.Input(key='-FOLDER-', readonly=True, enable_events=True, text_color='Black'),
+     psg.FolderBrowse()], [lst]
 ]
 
 window = psg.Window('Selection window', layout)
-
+KILL_BOOL = False
 while True:
     event, values = window.read()
 
     if event == psg.WIN_CLOSED:
         window.close()
-        exit("The selection window was closed")
+        KILL_BOOL = True
     elif event == "-FOLDER-":
         directory = values['-FOLDER-'] + "//"
-        png_files = get_png_files_from_directory(directory)
-        names = [sub.replace(directory, '') for sub in png_files]
+        png_list = get_png_files_from_directory(directory)
+        names = [sub.replace(directory, '') for sub in png_list]
         names = [sub.replace('.png', '') for sub in names]
         window['Name'].update(values=names)
-        
     elif event == 'Name':
         for x in range(0, len(names)):
             if values['Name'] == names[int(x)]:
-                next = png_files[int(x)]
-
-        print("Finding " + next + " next button starting on: " + str(time()) + " aka " + str(ctime()))
+                selected = png_list[int(x)]
+        print("Finding "+selected+" next button starting on: "+str(time())+" aka "+str(ctime()))
         break
-        
-
+    if KILL_BOOL:
+        break
 window.close()
-template = np.array(Image.open(next).convert('L'))
+if  not KILL_BOOL:
+    template = np.array(Image.open(selected).convert('L'))
 
 while True:
+    if KILL_BOOL:
+        break
     image = np.array(pygui.screenshot().convert('L'))
     result = match_template(image, template)
     locations = np.where(result >= 0.9)
@@ -89,10 +94,9 @@ while True:
         if pygui.position() != (object_x, object_y):
             pygui.moveTo(object_x, object_y)
             print("(x=" + str(object_x) + ", y=" + str(object_y)+ ") at " + ctime())
-    
-        if next == png_files[2]:
-            sleep(.5)
+            if selected == png_list[2]:
+                sleep(.5)
 
-        if len(locations[0]) > 0 and pygui.position() == (object_x, object_y) and keyboard.read_key() == 'right':
-             pygui.click()
-        
+        if len(locations[0])>0 and pygui.position()==(object_x,object_y):
+            if keyboard.read_key()=='right':
+                pygui.click()
