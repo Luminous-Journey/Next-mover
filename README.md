@@ -8,4 +8,4 @@ Dependencies are
 -pyautogui
 -keyboard
 -pysimplegui
--windows(for os)
+-windows
