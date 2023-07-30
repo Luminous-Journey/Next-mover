@@ -33,11 +33,9 @@ while True:
                 next = names[int(x)]
         print("Finding " + next + " next button starting on: " + str(time()) + " aka " + str(ctime()))
         break
-    if event == 'Add':
-        #names.append(values['Name'].strip())
-        window['Add'].Update('')
-        print("adding new name")
-        sleep(.125)
+    elif event == "Open Folder":
+        window['Name'].update(values=names)
+        sleep(1)
         
 
 
