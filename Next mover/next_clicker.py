@@ -122,7 +122,7 @@ window.close()
 if  not KILL_BOOL:
     template = np.array(Image.open(selected).convert('L'))
 
-del selected, path, paths, x, names, png_list, directory, event, values, window, layout, lst
+del selected, path, paths, x, names, png_list, directory, event, values, window, layout, lst, FILE_PATH
 object_x = None
 object_y = None
 top_left = None
@@ -152,4 +152,4 @@ while True:
             if keyboard.read_key()=='right':
                 pygui.click()
 
-    del image, result, object_x, object_y, top_left, bottom_right, locations, result
+    del image, result, object_x, object_y, top_left, bottom_right, locations, result, KILL_BOOL
