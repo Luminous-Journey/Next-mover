@@ -2,6 +2,7 @@
 from time import sleep, ctime, time
 import os
 import csv
+from tkinter import BOTTOM
 import PySimpleGUI as psg
 import numpy as np
 from PIL import Image
@@ -20,7 +21,6 @@ def get_all_paths():
             for row in reader:
                 paths.append(row)
     except FileNotFoundError:
-        # If the file doesn't exist, return an empty list
         pass
     return paths
 
@@ -37,11 +37,16 @@ def get_png_files_from_directory(path):
     png_files = []
     try:
         for file in os.listdir(path):
-            if file.lower().endswith('.png'):
+            if file.lower().endswith(('.png', '.jpg')):
                 png_files.append(os.path.join(path, file))
     except FileNotFoundError:
         # Handle the case when the path is not found
+        print('No .png files found in this directory, please select a different directory')
         return []
+    
+    if not png_files:
+        print('No .png files found in this directory, please select a different directory')
+    
     return png_files
 
 def color(text):
@@ -74,16 +79,17 @@ paths = get_all_paths()
 if paths:
     path = paths[0][0]
  
-def init_list(path):
+def extension_remover(path):
     png_list = get_png_files_from_directory(path) 
     names = [sub.replace(path, '') for sub in png_list]
     names = [sub.replace('.png', '') for sub in names]
+    names = [sub.replace('.jpg', '') for sub in names]
     names = [sub.replace('\\','') for sub in names]
     return names
 
 psg.theme('Black')
 psg.set_options(font=('Times New Roman', 14))
-lst = psg.Combo(values=init_list(path), expand_x=True, enable_events=True, readonly=True, key='Name')  # Use values=init_list(path)  # Use values=init_list() here
+lst = psg.Combo(values=extension_remover(path), expand_x=True, enable_events=True, readonly=True, key='Name')  # Use values=extension_remover(path)  # Use values=extension_remover() here
 layout = [
     [psg.Text('Please select a directory')],
     [psg.Input(path ,key='-FOLDER-', readonly=True, enable_events=True, text_color='Black'),
@@ -96,8 +102,7 @@ while True:
     event, values = window.read()
     directory = values['-FOLDER-'] + "/"
     png_list = get_png_files_from_directory(directory)
-    names = [sub.replace(directory, '') for sub in png_list]
-    names = [sub.replace('.png', '') for sub in names]
+    names = extension_remover(png_list)
     store_path(directory)
     window['Name'].update(values=names)
 
@@ -117,6 +122,12 @@ window.close()
 if  not KILL_BOOL:
     template = np.array(Image.open(selected).convert('L'))
 
+del selected, path, paths, x, names, png_list, directory, event, values, window, layout, lst
+object_x = None
+object_y = None
+top_left = None
+bottom_right = None
+result = None
 while True:
     if KILL_BOOL:
         break
@@ -140,3 +151,5 @@ while True:
         if len(locations[0])>0 and pygui.position()==(object_x,object_y):
             if keyboard.read_key()=='right':
                 pygui.click()
+
+    del image, result, object_x, object_y, top_left, bottom_right, locations, result
