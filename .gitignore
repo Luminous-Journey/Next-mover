@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 *.pyproj
 /Next mover.sln
+/Next mover/templates
