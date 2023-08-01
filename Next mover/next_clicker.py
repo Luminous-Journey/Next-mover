@@ -1,6 +1,7 @@
 '''moves my mouse and clicks for me'''
 from time import sleep, ctime, time
 import os
+import csv
 import PySimpleGUI as psg
 import numpy as np
 from PIL import Image
@@ -8,8 +9,41 @@ from skimage.feature import match_template
 import pyautogui as pygui
 import keyboard
 
-
+FILE_PATH = r"path_storage.txt"
 os.system("title Next by Luminous_Journey")
+
+def get_all_paths():
+    paths = []
+    try:
+        with open(FILE_PATH, mode='r') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                paths.append(row)
+    except FileNotFoundError:
+        # If the file doesn't exist, return an empty list
+        pass
+    return paths
+
+def store_path(path):
+    # Wipe the previous content and write the new path
+    with open(FILE_PATH, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([path])
+
+    print("Path stored successfully.")
+
+def get_png_files_from_directory(path):
+    '''parses file path for files'''
+    png_files = []
+    try:
+        for file in os.listdir(path):
+            if file.lower().endswith('.png'):
+                png_files.append(os.path.join(path, file))
+    except FileNotFoundError:
+        # Handle the case when the path is not found
+        return []
+    return png_files
+
 def color(text):
     '''Adds color to banner'''
     os.system("")
@@ -35,12 +69,24 @@ print(color(r'''
 |___| |.'   |___|=|_.' |___| |___|        `.|      
 '''))
 
+path = ''
+paths = get_all_paths()
+if paths:
+    path = paths[0][0]
+ 
+def init_list(path):
+    png_list = get_png_files_from_directory(path) 
+    names = [sub.replace(path, '') for sub in png_list]
+    names = [sub.replace('.png', '') for sub in names]
+    names = [sub.replace('\\','') for sub in names]
+    return names
+
 psg.theme('Black')
 psg.set_options(font=('Times New Roman', 14))
-lst = psg.Combo([], expand_x=True, enable_events=True, readonly=True, key='Name')
+lst = psg.Combo(values=init_list(path), expand_x=True, enable_events=True, readonly=True, key='Name')  # Use values=init_list(path)  # Use values=init_list() here
 layout = [
     [psg.Text('Please select a directory')],
-    [psg.Input(key='-FOLDER-', readonly=True, enable_events=True, text_color='Black'),
+    [psg.Input(path ,key='-FOLDER-', readonly=True, enable_events=True, text_color='Black'),
      psg.FolderBrowse()], [lst]
 ]
 
@@ -48,16 +94,16 @@ window = psg.Window('Selection window', layout)
 KILL_BOOL = False
 while True:
     event, values = window.read()
+    directory = values['-FOLDER-'] + "/"
+    png_list = get_png_files_from_directory(directory)
+    names = [sub.replace(directory, '') for sub in png_list]
+    names = [sub.replace('.png', '') for sub in names]
+    store_path(directory)
+    window['Name'].update(values=names)
 
     if event == psg.WIN_CLOSED:
         window.close()
         KILL_BOOL = True
-    elif event == "-FOLDER-":
-        directory = values['-FOLDER-'] + "/"
-        png_list = get_png_files_from_directory(directory)
-        names = [sub.replace(directory, '') for sub in png_list]
-        names = [sub.replace('.png', '') for sub in names]
-        window['Name'].update(values=names)
     elif event == 'Name':
         for x in range(0, len(names)):
             if values['Name'] == names[int(x)]:
@@ -67,19 +113,17 @@ while True:
     if KILL_BOOL:
         break
 window.close()
+
 if  not KILL_BOOL:
     template = np.array(Image.open(selected).convert('L'))
-res = 0.9
-if selected == 'C:/Users/tebre/source/repos/Next mover/Next mover/templates/SalmonLatte.png':
-        res = 1
-        print(res)
+
 while True:
     if KILL_BOOL:
         break
     image = np.array(pygui.screenshot().convert('L'))
     result = match_template(image, template)
     
-    locations = np.where(result >= res)
+    locations = np.where(result >= 0.9)
     if len(locations[0]) > 0:
         top_left = (locations[1][0], locations[0][0])
         bottom_right = (top_left[0] + template.shape[1], top_left[1] + template.shape[0])
@@ -90,7 +134,7 @@ while True:
         if pygui.position() != (object_x, object_y):
             pygui.moveTo(object_x, object_y)
             print("(x=" + str(object_x) + ", y=" + str(object_y)+ ") at " + ctime())
-            if selected == png_list[2]:
+            if selected == r"C:\Users\tebre\source\repos\Next mover\Next mover\templates\CyborgTL.png":
                 sleep(.5)
 
         if len(locations[0])>0 and pygui.position()==(object_x,object_y):
