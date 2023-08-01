@@ -61,7 +61,7 @@ while True:
         window.close()
         KILL_BOOL = True
     elif event == "-FOLDER-":
-        directory = values['-FOLDER-'] + "//"
+        directory = values['-FOLDER-'] + "/"
         png_list = get_png_files_from_directory(directory)
         names = [sub.replace(directory, '') for sub in png_list]
         names = [sub.replace('.png', '') for sub in names]
@@ -77,13 +77,17 @@ while True:
 window.close()
 if  not KILL_BOOL:
     template = np.array(Image.open(selected).convert('L'))
-
+res = 0.9
+if selected == 'C:/Users/tebre/source/repos/Next mover/Next mover/templates/SalmonLatte.png':
+        res = 1
+        print(res)
 while True:
     if KILL_BOOL:
         break
     image = np.array(pygui.screenshot().convert('L'))
     result = match_template(image, template)
-    locations = np.where(result >= 0.9)
+    
+    locations = np.where(result >= res)
     if len(locations[0]) > 0:
         top_left = (locations[1][0], locations[0][0])
         bottom_right = (top_left[0] + template.shape[1], top_left[1] + template.shape[0])
