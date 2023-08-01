@@ -35,14 +35,6 @@ print(color(r'''
 |___| |.'   |___|=|_.' |___| |___|        `.|      
 '''))
 
-def get_png_files_from_directory(path):
-    '''parses file path for files'''
-    png_files = []
-    for file in os.listdir(path):
-        if file.lower().endswith('.png'):
-            png_files.append(os.path.join(path, file))
-    return png_files
-
 psg.theme('Black')
 psg.set_options(font=('Times New Roman', 14))
 lst = psg.Combo([], expand_x=True, enable_events=True, readonly=True, key='Name')
