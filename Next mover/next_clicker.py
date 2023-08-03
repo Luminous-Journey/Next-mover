@@ -61,6 +61,11 @@ def color(text):
         faded += "\n"
     return faded
 
+def extension_remover(path):
+    image_files = get_image_files_from_directory(path)
+    names = [os.path.splitext(os.path.basename(file))[0] for file in image_files]
+    return names
+
 print(color(r'''
        ___         ___  ___   ___   ___  ___   ___ 
   .'| |   |   .'|=|_.' |   | |   | `._|=|   |=|_.' 
@@ -74,11 +79,6 @@ path = ''
 paths = get_all_paths()
 if paths:
     path = paths[0][0]
-
-def extension_remover(path):
-    image_files = get_image_files_from_directory(path)
-    names = [os.path.splitext(os.path.basename(file))[0] for file in image_files]
-    return names
 
 pygui.FAILSAFE = False
 selected = None
@@ -122,7 +122,6 @@ while True:
     if len(locations[0]) > 0:
         top_left = (locations[1][0], locations[0][0])
         bottom_right = (top_left[0] + template.shape[1], top_left[1] + template.shape[0])
-
         object_x = (top_left[0] + bottom_right[0]) // 2
         object_y = (top_left[1] + bottom_right[1]) // 2
 
