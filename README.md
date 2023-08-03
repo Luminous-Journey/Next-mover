@@ -3,9 +3,11 @@ I was too lazy to click the next button on webpages so i made a program to do it
 
 The only file required to make it work is the [next_clicker.py](https://github.com/Luminous-Journey/Next-mover/blob/master/Next%20mover/next_clicker.py)
 Dependencies are  
-- skicit-image  
-- numpy  
-- pyautogui  
-- keyboard  
-- pysimplegui  
-- windows
+- PySimpleGUI
+- numpy
+- Pillow
+- pyautogui
+- keyboard
+- opencv-python
+
+a requirments.txt will be included somewhere

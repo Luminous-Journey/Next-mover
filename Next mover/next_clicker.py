@@ -1,15 +1,14 @@
-'''moves my mouse and clicks for me'''
 from time import sleep, ctime, time
 import os
 import csv
-from tkinter import BOTTOM
+import PySimpleGUI as psg
 import numpy as np
 from PIL import Image
-from skimage.feature import match_template
 import pyautogui as pygui
 import keyboard
+import cv2
 
-FILE_PATH = r"path_storage.txt"
+FILE_PATH = "path_storage.txt"
 os.system("title Next by Luminous_Journey")
 
 def get_all_paths():
@@ -24,29 +23,27 @@ def get_all_paths():
     return paths
 
 def store_path(path):
-    # Wipe the previous content and write the new path
     with open(FILE_PATH, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([path])
 
     print("Path stored successfully.")
 
-def get_png_files_from_directory(path):
-    '''parses file path for files'''
-    png_files = []
+def get_image_files_from_directory(path):
+    '''parses file path for image files (.png and .jpg)'''
+    image_files = []
     try:
         for file in os.listdir(path):
             if file.lower().endswith(('.png', '.jpg')):
-                png_files.append(os.path.join(path, file))
+                image_files.append(os.path.join(path, file))
     except FileNotFoundError:
-        # Handle the case when the path is not found
-        print('No .png files found in this directory, please select a different directory')
+        print('No image files (.png or .jpg) found in this directory')
         return []
-    
-    if not png_files:
-        print('No .png files found in this directory, please select a different directory')
-    
-    return png_files
+
+    if not image_files:
+        print('No image files (.png or .jpg) found in this directory')
+
+    return image_files
 
 def color(text):
     '''Adds color to banner'''
@@ -77,60 +74,51 @@ path = ''
 paths = get_all_paths()
 if paths:
     path = paths[0][0]
- 
+
 def extension_remover(path):
-    png_list = get_png_files_from_directory(path) 
-    names = [sub.replace(path, '') for sub in png_list]
-    names = [sub.replace('.png', '') for sub in names]
-    names = [sub.replace('.jpg', '') for sub in names]
-    names = [sub.replace('\\','') for sub in names]
+    image_files = get_image_files_from_directory(path)
+    names = [os.path.splitext(os.path.basename(file))[0] for file in image_files]
     return names
 
-psg.theme('Black')
-psg.set_options(font=('Times New Roman', 14))
-lst = psg.Combo(values=extension_remover(path), expand_x=True, enable_events=True, readonly=True, key='Name')  # Use values=extension_remover(path)  # Use values=extension_remover() here
-layout = [
+pygui.FAILSAFE = False
+selected = None
+psg.theme('black')
+
+window_layout = [
     [psg.Text('Please select a directory')],
-    [psg.Input(path ,key='-FOLDER-', readonly=True, enable_events=True, text_color='Black'),
-     psg.FolderBrowse()], [lst]
+    [psg.Input(path, key='-FOLDER-', readonly=True, enable_events=True, text_color='Black'), psg.FolderBrowse()],
+    [psg.Combo(values=extension_remover(path), expand_x=True, enable_events=True, readonly=True, key='Name')]
 ]
 
-window = psg.Window('Selection window', layout)
+window = psg.Window('Selection window', window_layout)
+
 KILL_BOOL = False
+
 while True:
+    if KILL_BOOL:
+        break
     event, values = window.read()
-    directory = values['-FOLDER-'] + "/"
-    png_list = get_png_files_from_directory(directory)
-    names = extension_remover(png_list)
+    directory = values['-FOLDER-']
+    image_files = get_image_files_from_directory(directory)
+    names = extension_remover(directory)
     store_path(directory)
     window['Name'].update(values=names)
-
+    
     if event == psg.WIN_CLOSED:
         window.close()
         KILL_BOOL = True
     elif event == 'Name':
-        for x in range(0, len(names)):
-            if values['Name'] == names[int(x)]:
-                selected = png_list[int(x)]
-        print("Finding "+selected+" next button starting on: "+str(time())+" aka "+str(ctime()))
-        break
-    if KILL_BOOL:
-        break
+        selected = os.path.join(directory, values['Name'] + '.png')
+        window['Name'].update(value=values['Name'])
+        print("Finding " + selected + " next button starting on: " + str(time()) + " aka " + str(ctime()))
+        pass
 
+    template = cv2.imread(selected, cv2.IMREAD_GRAYSCALE)
+    screenshot = pygui.screenshot()
+    screenshot_np = np.array(screenshot)
+    gray_screenshot = cv2.cvtColor(screenshot_np, cv2.COLOR_BGR2GRAY)
+    locations = np.where(cv2.matchTemplate(gray_screenshot, template, cv2.TM_CCOEFF_NORMED) >= 0.9)
 
-object_x = None
-object_y = None
-top_left = None
-bottom_right = None
-result = None
-while True:
-    if KILL_BOOL:
-        break
-    image = np.array(pygui.screenshot().convert('L'))
-    result = match_template(image, template)
-    image_files = get_image_files_from_directory(directory)
-    
-    locations = np.where(result >= 0.9)
     if len(locations[0]) > 0:
         top_left = (locations[1][0], locations[0][0])
         bottom_right = (top_left[0] + template.shape[1], top_left[1] + template.shape[0])
@@ -148,4 +136,4 @@ while True:
             if keyboard.read_key() == 'right':
                 pygui.click()
 
-    del image, locations
+    sleep(0.5)
