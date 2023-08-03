@@ -3,7 +3,6 @@ from time import sleep, ctime, time
 import os
 import csv
 from tkinter import BOTTOM
-import PySimpleGUI as psg
 import numpy as np
 from PIL import Image
 from skimage.feature import match_template
@@ -117,12 +116,8 @@ while True:
         break
     if KILL_BOOL:
         break
-window.close()
 
-if  not KILL_BOOL:
-    template = np.array(Image.open(selected).convert('L'))
 
-del selected, path, paths, x, names, png_list, directory, event, values, window, layout, lst, FILE_PATH
 object_x = None
 object_y = None
 top_left = None
@@ -133,6 +128,7 @@ while True:
         break
     image = np.array(pygui.screenshot().convert('L'))
     result = match_template(image, template)
+    image_files = get_image_files_from_directory(directory)
     
     locations = np.where(result >= 0.9)
     if len(locations[0]) > 0:
@@ -144,12 +140,12 @@ while True:
 
         if pygui.position() != (object_x, object_y):
             pygui.moveTo(object_x, object_y)
-            print("(x=" + str(object_x) + ", y=" + str(object_y)+ ") at " + ctime())
-            if selected == r"C:\Users\tebre\source\repos\Next mover\Next mover\templates\CyborgTL.png":
+            print("(x=" + str(object_x) + ", y=" + str(object_y) + ") at " + ctime())
+            if selected.endswith('CyborgTL.png'):
                 sleep(.5)
 
-        if len(locations[0])>0 and pygui.position()==(object_x,object_y):
-            if keyboard.read_key()=='right':
+        if len(locations[0]) > 0 and pygui.position() == (object_x, object_y):
+            if keyboard.read_key() == 'right':
                 pygui.click()
 
-    del image, result, object_x, object_y, top_left, bottom_right, locations, result, KILL_BOOL
+    del image, locations
