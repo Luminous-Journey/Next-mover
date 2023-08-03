@@ -75,12 +75,15 @@ print(color(r'''
 '''))
 
 path = ''
-paths_from_paths = get_all_paths()
-if paths_from_paths:
-    path = paths_from_paths[0][0]
-else:
-    print('Ahhhhh, im dying')
-    exit()
+paths = get_all_paths()
+if paths:
+    path = paths[0][0]
+
+def extension_remover(path):
+    image_files = get_image_files_from_directory(path)
+    names = [os.path.splitext(os.path.basename(file))[0] for file in image_files]
+    return names
+
 pygui.FAILSAFE = False
 selected = None
 psg.theme('black')
