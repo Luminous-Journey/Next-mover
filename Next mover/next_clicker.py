@@ -3,7 +3,6 @@ import os
 import csv
 import PySimpleGUI as psg
 import numpy as np
-from PIL import Image
 import pyautogui as pygui
 import keyboard
 import cv2
@@ -61,6 +60,11 @@ def color(text):
         faded += "\n"
     return faded
 
+def extension_remover(path):
+    image_files = get_image_files_from_directory(path)
+    names = [os.path.splitext(os.path.basename(file))[0] for file in image_files]
+    return names
+
 print(color(r'''
        ___         ___  ___   ___   ___  ___   ___ 
   .'| |   |   .'|=|_.' |   | |   | `._|=|   |=|_.' 
@@ -71,15 +75,12 @@ print(color(r'''
 '''))
 
 path = ''
-paths = get_all_paths()
-if paths:
-    path = paths[0][0]
-
-def extension_remover(path):
-    image_files = get_image_files_from_directory(path)
-    names = [os.path.splitext(os.path.basename(file))[0] for file in image_files]
-    return names
-
+paths_from_paths = get_all_paths()
+if paths_from_paths:
+    path = paths_from_paths[0][0]
+else:
+    print('Ahhhhh, im dying')
+    exit()
 pygui.FAILSAFE = False
 selected = None
 psg.theme('black')
@@ -111,7 +112,6 @@ while True:
         selected = os.path.join(directory, values['Name'] + '.png')
         window['Name'].update(value=values['Name'])
         print("Finding " + selected + " next button starting on: " + str(time()) + " aka " + str(ctime()))
-        pass
 
     template = cv2.imread(selected, cv2.IMREAD_GRAYSCALE)
     screenshot = pygui.screenshot()
@@ -122,7 +122,6 @@ while True:
     if len(locations[0]) > 0:
         top_left = (locations[1][0], locations[0][0])
         bottom_right = (top_left[0] + template.shape[1], top_left[1] + template.shape[0])
-
         object_x = (top_left[0] + bottom_right[0]) // 2
         object_y = (top_left[1] + bottom_right[1]) // 2
 
