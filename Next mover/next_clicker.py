@@ -91,11 +91,7 @@ window_layout = [
 
 window = psg.Window('Selection window', window_layout)
 
-KILL_BOOL = False
-
 while True:
-    if KILL_BOOL:
-        break
     event, values = window.read()
     directory = values['-FOLDER-']
     image_files = get_image_files_from_directory(directory)
@@ -105,7 +101,7 @@ while True:
     
     if event == psg.WIN_CLOSED:
         window.close()
-        KILL_BOOL = True
+        break
     elif event == 'Name':
         selected = os.path.join(directory, values['Name'] + '.png')
         window['Name'].update(value=values['Name'])
