@@ -53,6 +53,7 @@ def window_event_handler(window, filePath, Paused):
         store_path(directory, filePath)
         if extension_remover(directory) is False:
             Psg.popup("There are no Valid Files is this directory", title='No Valid files')
+
     elif event == 'Name':
         image_name = values['Name'] + '.png'
         selected = os.path.join(directory, image_name)
@@ -60,16 +61,21 @@ def window_event_handler(window, filePath, Paused):
             print(f"Invalid file path: {selected}")
         else:
             print("Finding " + selected + " next button starting on: " + str(time()) + " aka " + str(ctime()))
+
     elif event == 'Pause':
-        if Paused:
-            selected = False
+        if Paused == False:
+            Paused = True
             window['Pause'].update(button_color='Gray')
+            window['Name'].update(value=values['Name'])
             window['Name'].update(disabled=True)
-            print("paused")
-        elif selected == False:
-            selected = not selected
+            return Paused
+        elif Paused == True:
+            Paused = not Paused
             window['Pause'].update(button_color='White')
+            window['Name'].update(value=values['Name'])
             window['Name'].update(disabled=False)
+            return Paused
+
     window['Name'].update(value=values['Name'])
 
     if selected != '':
