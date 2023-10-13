@@ -41,8 +41,8 @@ else:
 window_layout = [
     [Psg.Text('Please select a directory')],
     [Psg.Input(path, key='-FOLDER-', readonly=True, enable_events=True, text_color='Black'), Psg.FolderBrowse()],
-    [Psg.Combo(values=value, expand_x=True, enable_events=True, readonly=True, key='Name', disabled=True)],
-    [Psg.Button(enable_events=True, key='Pause', button_text="Pause", button_color='White')]
+    [Psg.Combo(values=value, expand_x=True, enable_events=True, readonly=True, key='Name', disabled=False)],
+    [Psg.Button(enable_events=True, key='Pause', button_text="Pause", button_color='White', disabled=False)]
 ]
 
 window = Psg.Window('Selection window', window_layout)
@@ -85,7 +85,7 @@ while True:
     # print(selected)
     if selected is None:
         pass
-    elif selected:
+    elif selected is True:
         toggle()
     elif selected is False:
         pass
