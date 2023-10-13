@@ -7,10 +7,10 @@ import PySimpleGUI as Psg
 import keyboard
 import pyautogui as pygui
 
-
 true = False
 selected = ''
 Paused = False
+
 
 def get_all_paths(filePath):
     paths_to_get = []
@@ -49,11 +49,6 @@ def window_event_handler(window, filePath, Paused):
     if extension_remover(directory) is not False:
         window['Name'].update(values=names)
 
-    if Paused:
-        window['Name'].update(disabled=True)
-    else:
-        window['Name'].update(disabled=False)
-
     if event == '-FOLDER-':
         store_path(directory, filePath)
         if extension_remover(directory) is False:
@@ -65,13 +60,16 @@ def window_event_handler(window, filePath, Paused):
             print(f"Invalid file path: {selected}")
         else:
             print("Finding " + selected + " next button starting on: " + str(time()) + " aka " + str(ctime()))
-    if event == 'Pause':
-        if not Paused:
-            selected = True
-            window['Pause'].update(button_color='black')
-        else: selected = not selected
-    else:
-        window['Pause'].update(button_color='gray')
+    elif event == 'Pause':
+        if Paused:
+            selected = False
+            window['Pause'].update(button_color='Gray')
+            window['Name'].update(disabled=True)
+            print("paused")
+        elif selected == False:
+            selected = not selected
+            window['Pause'].update(button_color='White')
+            window['Name'].update(disabled=False)
     window['Name'].update(value=values['Name'])
 
     if selected != '':
