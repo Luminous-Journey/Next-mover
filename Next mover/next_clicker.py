@@ -50,11 +50,7 @@ window = Psg.Window('Selection window', window_layout)
 
 def toggle():
     global Paused
-    # global x
     Paused = not Paused
-    if Paused is False:
-        # x = 0
-        pass
     # print("Pause state:", Paused)
 
 
