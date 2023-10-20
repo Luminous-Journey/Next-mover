@@ -45,7 +45,7 @@ def get_all_paths(filePath):
 
 
 def store_path(path_to_store, file_path):
-    if extension_remover(path_to_store) is not False:
+    if extension_remover(path_to_store) != '':
         with open(file_path, mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([path_to_store])
@@ -67,13 +67,13 @@ def window_event_handler(window, file_path, Paused):
 
     directory = values['Path']
 
-    if extension_remover(directory) is not False:
+    if extension_remover(directory) != '':
         window['Name'].update(values=extension_remover(directory))
         window['Name'].update(value=values['Name'])
 
     if event == '-FOLDER-':
         store_path(directory, file_path)
-        if extension_remover(directory) is False:
+        if extension_remover(directory) == '':
             Psg.popup("There are no Valid Files is this directory", title='No Valid files')
 
     elif event == 'shortcut':
@@ -149,7 +149,7 @@ def extension_remover(path):
     if names:
         return names
     else:
-        return False
+        return ''
 
 
 def color(text):
