@@ -12,7 +12,7 @@ import io
 selected = ''
 Paused = False
 pressed_keys = set()
-first = True
+first = False
 
 
 def adjust_transparency(image, alpha):
@@ -69,6 +69,7 @@ def window_event_handler(window, file_path, Paused):
 
     if extension_remover(directory) is not False:
         window['Name'].update(values=extension_remover(directory))
+        window['Name'].update(value=values['Name'])
 
     if event == '-FOLDER-':
         store_path(directory, file_path)
@@ -83,6 +84,7 @@ def window_event_handler(window, file_path, Paused):
         return "shortcut"
 
     elif event == 'Name':
+        first = False
         image_name = values['Name'] + '.png'
         selected = os.path.join(directory, image_name)
         print(directory)
@@ -115,15 +117,11 @@ def window_event_handler(window, file_path, Paused):
 
     if Paused is False and not first:
         window['Pause'].update(button_color=Psg.theme_button_color())
-        window['Name'].update(value=values['Name'])
-        window['Name'].update(disabled=False)
+
 
     elif Paused is True and not first:
         window['Pause'].update(button_color=("Black", "White"))
-        window['Name'].update(value=values['Name'])
-        window['Name'].update(disabled=True)
 
-    window['Name'].update(value=values['Name'])
 
     return selected
 
