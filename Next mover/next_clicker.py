@@ -6,15 +6,19 @@ import pyautogui as pygui
 
 import lib
 
+path = ''
 Paused = False
 filePath = "path_storage.txt"
 shortcut = None
 pressed_keys = set()
 paths = lib.get_all_paths(filePath)
-path = paths[0][0]
+if paths is list:
+    path = paths[0][0]
 pygui.FAILSAFE = False
 Psg.theme('DarkBlue3')
 value = lib.extension_remover(path)
+if value is bool:
+    value = ''
 percentage_threshold = 5
 location = None
 window_layout = [
@@ -42,8 +46,8 @@ displayText = r'''
 |___| |.'   |___|=|_.' |___| |___|        `.|
 '''
 
-os.system("title Next by Luminous_Journey")
-print(lib.color(displayText))
+# os.system("title Next by Luminous_Journey")
+# print(lib.color(displayText))
 
 
 def toggle():
