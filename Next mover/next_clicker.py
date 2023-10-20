@@ -11,7 +11,7 @@ Paused = False
 filePath = "path_storage.txt"
 x = 0
 path = ''
-shortcut = "ctrl+q"
+shortcut = 'ctrl+q'
 pressed_keys = set()
 paths = lib.get_all_paths(filePath)
 paths = paths[0][0]
@@ -24,6 +24,7 @@ window_layout = [
     [Psg.Text('Please select a directory')],
     [Psg.Input(paths, key='-FOLDER-', readonly=True, enable_events=True, text_color='Black'), Psg.FolderBrowse()],
     [Psg.Combo(values=value, expand_x=True, enable_events=True, readonly=True, key='Name', disabled=False)],
+    [Psg.Text("Selected Image: ", visible=False, key='Image Text'), Psg.Image(key='Image',visible=False)],
     [Psg.Button(enable_events=True, key='Pause', button_text="Pause", button_color='White', disabled=True),
      Psg.Button(key='shortcut', enable_events=True, button_text="Set shortcut")]
 ]
@@ -88,7 +89,7 @@ while True:
         break
 
     elif selected == "shortcut":
-        popup = Psg.popup_non_blocking("Please enter a shortcut, Example: ctrl+q. /n Press Escape to stop recording")
+        popup = Psg.popup_non_blocking("Please enter a shortcut, Example: ctrl+q. Press Escape to stop recording")
         keyboard.hook(on_key_event)
         keyboard.wait('esc')
         # print("Escaped")
