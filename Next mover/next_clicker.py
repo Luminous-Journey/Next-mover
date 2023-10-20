@@ -6,18 +6,21 @@ import pyautogui as pygui
 
 import lib
 
-selected = ''
 Paused = False
 filePath = "path_storage.txt"
+shortcut = None
 pressed_keys = set()
 paths = lib.get_all_paths(filePath)
-paths = paths[0][0]
+path = paths[0][0]
 pygui.FAILSAFE = False
 Psg.theme('DarkBlue3')
-value = lib.extension_remover(paths)
+value = lib.extension_remover(path)
+percentage_threshold = 5
+location = None
 window_layout = [
     [Psg.Text('Please select a directory')],
-    [Psg.Input(paths,key='Path', readonly=True, enable_events=False, text_color='Black'), Psg.FolderBrowse(tooltip="Select a folder to choose from", key='-FOLDER-'),],
+    [Psg.Input(path, key='Path', readonly=True, enable_events=True, text_color='Black'),
+     Psg.FolderBrowse(tooltip="Select a folder to choose from", key='-FOLDER-'),],
     [Psg.Combo(values=value, expand_x=True, enable_events=True, readonly=True, key='Name', disabled=False)],
     [Psg.Text("Selected Image: ", visible=False, key='Image Text'), Psg.Image(key='Image', visible=False)],
     [Psg.Button(enable_events=True, key='Pause', button_text="Pause", disabled=False),
@@ -55,7 +58,7 @@ def on_key_event(e):
             pressed_keys.add(key)
 
 
-if lib.extension_remover(paths) is []:
+if lib.extension_remover(path) is []:
     Psg.popup("There are no Valid Files is this directory", title='No Valid files')
 
 while True:
@@ -68,14 +71,13 @@ while True:
             toggle()
         continue
 
-    elif not Paused: pass
-
     # print(selected)
-    if selected == '' or selected is False: continue
+    if selected == '' or selected is False:
+        continue
 
-    elif selected is True: toggle()
-
-    elif selected is False: pass
+    elif selected is True:
+        toggle()
+        continue
 
     elif selected == 'exit':
         window.close()
@@ -91,7 +93,6 @@ while True:
         if selected == 'first' and shortcut != '':
             keyboard.add_hotkey(shortcut, toggle)
         popup.close()
-
         continue
 
     else:
