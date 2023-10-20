@@ -12,7 +12,7 @@ import io
 selected = ''
 Paused = False
 pressed_keys = set()
-first = False
+first = True
 
 
 def adjust_transparency(image, alpha):
@@ -71,8 +71,9 @@ def window_event_handler(window, file_path, Paused):
         window['Name'].update(values=extension_remover(directory))
         window['Name'].update(value=values['Name'])
 
-    if event == '-FOLDER-':
+    if event == 'Path':
         store_path(directory, file_path)
+        print("Stored")
         if extension_remover(directory) == '':
             Psg.popup("There are no Valid Files is this directory", title='No Valid files')
 
@@ -84,14 +85,13 @@ def window_event_handler(window, file_path, Paused):
         return "shortcut"
 
     elif event == 'Name':
-        first = False
         image_name = values['Name'] + '.png'
         selected = os.path.join(directory, image_name)
         print(directory)
         window['Pause'].update(disabled=False)
         original_image = Image.open(selected)
-        new_width = int(original_image.width * 1.1)
-        new_height = int(original_image.height * 1.1)
+        new_width = int(original_image.width * 1.025)
+        new_height = int(original_image.height * 1.025)
         resized_image = original_image.resize((new_width, new_height), Image.BILINEAR)
         img_byte_array = io.BytesIO()
         resized_image.save(img_byte_array, format='PNG')
