@@ -1,132 +1,108 @@
-from time import sleep, ctime, time
 import os
-import csv
-import PySimpleGUI as psg
-import numpy as np
-import pyautogui as pygui
+
+import PySimpleGUI as Psg
 import keyboard
-import cv2
+import pyautogui as pygui
 
-FILE_PATH = "path_storage.txt"
-os.system("title Next by Luminous_Journey")
+import lib
 
-def get_all_paths():
-    paths = []
-    try:
-        with open(FILE_PATH, mode='r') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                paths.append(row)
-    except FileNotFoundError:
-        pass
-    return paths
-
-def store_path(path):
-    with open(FILE_PATH, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([path])
-
-    print("Path stored successfully.")
-
-def get_image_files_from_directory(path):
-    '''parses file path for image files (.png and .jpg)'''
-    image_files = []
-    try:
-        for file in os.listdir(path):
-            if file.lower().endswith(('.png', '.jpg')):
-                image_files.append(os.path.join(path, file))
-    except FileNotFoundError:
-        print('No image files (.png or .jpg) found in this directory')
-        return []
-
-    if not image_files:
-        print('No image files (.png or .jpg) found in this directory')
-
-    return image_files
-
-def color(text):
-    '''Adds color to banner'''
-    os.system("")
-    faded = ""
-    for line in text.splitlines():
-        green = 250
-        blue = 250
-        for character in line:
-            green -= 5
-            blue -= 5
-            green = max(green, 0)
-            blue = max(blue, 0)
-            faded += (f"\033[38;2;255;{blue};0m{character}\033[0m")
-        faded += "\n"
-    return faded
-
-def extension_remover(path):
-    image_files = get_image_files_from_directory(path)
-    names = [os.path.splitext(os.path.basename(file))[0] for file in image_files]
-    return names
-
-print(color(r'''
-       ___         ___  ___   ___   ___  ___   ___ 
-  .'| |   |   .'|=|_.' |   | |   | `._|=|   |=|_.' 
-.'  |\|   | .'  |  ___ `.  | |  .'      |   |      
-|   | |   | |   |=|_.'  .` |=| `.       |   |      
-|   | |  .' |   |  ___ |   | |   |      `.  |      
-|___| |.'   |___|=|_.' |___| |___|        `.|      
-'''))
-
-path = ''
-paths = get_all_paths()
-if paths:
-    path = paths[0][0]
-
+selected = ''
+Paused = False
+filePath = "path_storage.txt"
+pressed_keys = set()
+paths = lib.get_all_paths(filePath)
+paths = paths[0][0]
 pygui.FAILSAFE = False
-selected = None
-psg.theme('black')
-
+Psg.theme('DarkBlue3')
+value = lib.extension_remover(paths)
 window_layout = [
-    [psg.Text('Please select a directory')],
-    [psg.Input(path, key='-FOLDER-', readonly=True, enable_events=True, text_color='Black'), psg.FolderBrowse()],
-    [psg.Combo(values=extension_remover(path), expand_x=True, enable_events=True, readonly=True, key='Name')]
+    [Psg.Text('Please select a directory')],
+    [Psg.Input(paths,key='Path', readonly=True, enable_events=False, text_color='Black'), Psg.FolderBrowse(tooltip="Select a folder to choose from", key='-FOLDER-'),],
+    [Psg.Combo(values=value, expand_x=True, enable_events=True, readonly=True, key='Name', disabled=False)],
+    [Psg.Text("Selected Image: ", visible=False, key='Image Text'), Psg.Image(key='Image', visible=False)],
+    [Psg.Button(enable_events=True, key='Pause', button_text="Pause", disabled=False),
+     Psg.Button(key='shortcut', enable_events=True, button_text="Set shortcut")]
 ]
+popup_layout = [
+    [Psg.Text("Please enter a shortcut, Example: ctrl+q. Press Escape to stop recording")],
+    [Psg.Text()]
 
-window = psg.Window('Selection window', window_layout)
+]
+window = Psg.Window('Selection window', window_layout)
+popup = Psg.Window("Popup", popup_layout)
+displayText = r'''
+       ___         ___  ___   ___   ___  ___   ___
+  .'| |   |   .'|=|_.' |   | |   | `._|=|   |=|_.'
+.'  |\|   | .'  |  ___ `.  | |  .'      |   |
+|   | |   | |   |=|_.'  .` |=| `.       |   |
+|   | |  .' |   |  ___ |   | |   |      `.  |
+|___| |.'   |___|=|_.' |___| |___|        `.|
+'''
+
+os.system("title Next by Luminous_Journey")
+print(lib.color(displayText))
+
+
+def toggle():
+    global Paused
+    Paused = not Paused
+
+
+def on_key_event(e):
+    if e.event_type == keyboard.KEY_DOWN:
+        key = e.name
+        if key != 'esc' and key not in pressed_keys:
+            pressed_keys.add(key)
+
+
+if lib.extension_remover(paths) is []:
+    Psg.popup("There are no Valid Files is this directory", title='No Valid files')
 
 while True:
-    event, values = window.read()
-    directory = values['-FOLDER-']
-    image_files = get_image_files_from_directory(directory)
-    names = extension_remover(directory)
-    store_path(directory)
-    window['Name'].update(values=names)
-    
-    if event == psg.WIN_CLOSED:
+    selected = lib.window_event_handler(window, filePath, Paused)
+
+    if Paused:
+        if selected == 'exit':
+            exit('program closed')
+        elif not selected:
+            toggle()
+        continue
+
+    elif not Paused: pass
+
+    # print(selected)
+    if selected == '' or selected is False: continue
+
+    elif selected is True: toggle()
+
+    elif selected is False: pass
+
+    elif selected == 'exit':
         window.close()
         break
-    elif event == 'Name':
-        selected = os.path.join(directory, values['Name'] + '.png')
-        window['Name'].update(value=values['Name'])
-        print("Finding " + selected + " next button starting on: " + str(time()) + " aka " + str(ctime()))
 
-    template = cv2.imread(selected, cv2.IMREAD_GRAYSCALE)
-    screenshot = pygui.screenshot()
-    screenshot_np = np.array(screenshot)
-    gray_screenshot = cv2.cvtColor(screenshot_np, cv2.COLOR_BGR2GRAY)
-    locations = np.where(cv2.matchTemplate(gray_screenshot, template, cv2.TM_CCOEFF_NORMED) >= 0.9)
+    elif selected == 'first' or selected == "shortcut":
+        popup.read(timeout=25)
+        keyboard.hook(on_key_event)
+        keyboard.wait('esc')
+        shortcut = '+'.join(pressed_keys)
+        if shortcut != '':
+            window['shortcut'].update(text=shortcut)
+        if selected == 'first' and shortcut != '':
+            keyboard.add_hotkey(shortcut, toggle)
+        popup.close()
 
-    if len(locations[0]) > 0:
-        top_left = (locations[1][0], locations[0][0])
-        bottom_right = (top_left[0] + template.shape[1], top_left[1] + template.shape[0])
-        object_x = (top_left[0] + bottom_right[0]) // 2
-        object_y = (top_left[1] + bottom_right[1]) // 2
+        continue
 
-        if pygui.position() != (object_x, object_y):
-            pygui.moveTo(object_x, object_y)
-            print("(x=" + str(object_x) + ", y=" + str(object_y) + ") at " + ctime())
-            if selected.endswith('CyborgTL.png'):
-                sleep(.5)
+    else:
+        location = pygui.locateCenterOnScreen(selected, confidence=0.99, grayscale=False, limit=1, minSearchTime=0)
 
-        if len(locations[0]) > 0 and pygui.position() == (object_x, object_y):
-            if keyboard.read_key() == 'right':
-                pygui.click()
+        if location is None:
+            distance = 0
+        else:
+            distance = lib.euclidean_distance(pygui.position(), location)
 
-    sleep(0.5)
+        if location is not None and distance > 15:
+            pygui.moveTo(location)
+
+        keyboard.add_hotkey("right", lambda: lib.click(distance))
