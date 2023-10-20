@@ -12,7 +12,7 @@ filePath = "path_storage.txt"
 shortcut = None
 pressed_keys = set()
 paths = lib.get_all_paths(filePath)
-if paths is list:
+if len(paths) > 0:
     path = paths[0][0]
 pygui.FAILSAFE = False
 Psg.theme('DarkBlue3')
@@ -23,8 +23,7 @@ percentage_threshold = 5
 location = None
 window_layout = [
     [Psg.Text('Please select a directory')],
-    [Psg.Input(path, key='Path', readonly=True, enable_events=True, text_color='Black'),
-     Psg.FolderBrowse(tooltip="Select a folder to choose from", key='-FOLDER-'),],
+    [Psg.Input(path, key='Path', readonly=True, enable_events=True, text_color='Black'), Psg.FolderBrowse()],
     [Psg.Combo(values=value, expand_x=True, enable_events=True, readonly=True, key='Name', disabled=False)],
     [Psg.Text("Selected Image: ", visible=False, key='Image Text'), Psg.Image(key='Image', visible=False)],
     [Psg.Button(enable_events=True, key='Pause', button_text="Pause", disabled=False),
