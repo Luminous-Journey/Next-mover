@@ -9,26 +9,27 @@ import lib
 selected = ''
 Paused = False
 filePath = "path_storage.txt"
-x = 0
-path = ''
-shortcut = 'ctrl+q'
 pressed_keys = set()
 paths = lib.get_all_paths(filePath)
 paths = paths[0][0]
 pygui.FAILSAFE = False
 Psg.theme('DarkBlue3')
 value = lib.extension_remover(paths)
-percentage_threshold = 5
-location = None
 window_layout = [
     [Psg.Text('Please select a directory')],
-    [Psg.Input(paths, key='-FOLDER-', readonly=True, enable_events=True, text_color='Black'), Psg.FolderBrowse()],
+    [Psg.Input(paths,key='Path', readonly=True, enable_events=False, text_color='Black'), Psg.FolderBrowse(tooltip="Select a folder to choose from", key='-FOLDER-'),],
     [Psg.Combo(values=value, expand_x=True, enable_events=True, readonly=True, key='Name', disabled=False)],
-    [Psg.Text("Selected Image: ", visible=False, key='Image Text'), Psg.Image(key='Image',visible=False)],
-    [Psg.Button(enable_events=True, key='Pause', button_text="Pause", button_color='White', disabled=True),
+    [Psg.Text("Selected Image: ", visible=False, key='Image Text'), Psg.Image(key='Image', visible=False)],
+    [Psg.Button(enable_events=True, key='Pause', button_text="Pause", disabled=False),
      Psg.Button(key='shortcut', enable_events=True, button_text="Set shortcut")]
 ]
+popup_layout = [
+    [Psg.Text("Please enter a shortcut, Example: ctrl+q. Press Escape to stop recording")],
+    [Psg.Text()]
+
+]
 window = Psg.Window('Selection window', window_layout)
+popup = Psg.Window("Popup", popup_layout)
 displayText = r'''
        ___         ___  ___   ___   ___  ___   ___
   .'| |   |   .'|=|_.' |   | |   | `._|=|   |=|_.'
@@ -57,49 +58,44 @@ def on_key_event(e):
 if lib.extension_remover(paths) is []:
     Psg.popup("There are no Valid Files is this directory", title='No Valid files')
 
-keyboard.add_hotkey(shortcut, toggle)
-
 while True:
     selected = lib.window_event_handler(window, filePath, Paused)
 
     if Paused:
         if selected == 'exit':
             exit('program closed')
-
         elif not selected:
             toggle()
         continue
 
-    elif not Paused:
-        # x = 0
-        pass
+    elif not Paused: pass
 
     # print(selected)
-    if selected is None:
-        pass
+    if selected == '' or selected is False: continue
 
-    elif selected is True:
-        toggle()
+    elif selected is True: toggle()
 
-    elif selected is False:
-        pass
+    elif selected is False: pass
 
     elif selected == 'exit':
         window.close()
         break
 
-    elif selected == "shortcut":
-        popup = Psg.popup_non_blocking("Please enter a shortcut, Example: ctrl+q. Press Escape to stop recording")
+    elif selected == 'first' or selected == "shortcut":
+        popup.read(timeout=25)
         keyboard.hook(on_key_event)
         keyboard.wait('esc')
-        # print("Escaped")
         shortcut = '+'.join(pressed_keys)
-        # print(shortcut)
-        window['shortcut'].update(text=shortcut)
+        if shortcut != '':
+            window['shortcut'].update(text=shortcut)
+        if selected == 'first' and shortcut != '':
+            keyboard.add_hotkey(shortcut, toggle)
+        popup.close()
+
         continue
 
     else:
-        location = pygui.locateCenterOnScreen(selected, confidence=0.95, grayscale=False, limit=1, minSearchTime=0)
+        location = pygui.locateCenterOnScreen(selected, confidence=0.99, grayscale=False, limit=1, minSearchTime=0)
 
         if location is None:
             distance = 0
