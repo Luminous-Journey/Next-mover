@@ -52,15 +52,13 @@ def store_path(path_to_store, file_path):
     print("Path stored successfully.")
 
 
-def window_event_handler(window, file_path, Paused):
+def window_event_handler(window, file_path, Paused, event, values):
     global selected
     global first
 
     if selected is None:
         selected = ''
         return selected
-
-    event, values = window.read(timeout=50)
 
     if event == Psg.WIN_CLOSED:
         return 'exit'
@@ -78,7 +76,6 @@ def window_event_handler(window, file_path, Paused):
             Psg.popup("There are no Valid Files is this directory", title='No Valid files')
 
     elif event == 'shortcut':
-        window['Name'].update(value=values['Name'])
         if first:
             first = not first
             return "first"
@@ -115,12 +112,12 @@ def window_event_handler(window, file_path, Paused):
             Paused = not Paused
             return Paused
 
-    if Paused is False and not first:
+    if Paused is False:
         window['Pause'].update(button_color=Psg.theme_button_color())
 
 
-    elif Paused is True and not first:
-        window['Pause'].update(button_color=("Black", "White"))
+    elif Paused is True:
+        window['Pause'].update(button_color=('#283b5b', "White"))
 
 
     return selected
@@ -133,6 +130,7 @@ def get_image_files_from_directory(path):
         for file in os.listdir(path):
             if file.lower().endswith(('.png', '.jpg')):
                 image_files.append(os.path.join(path, file))
+        return image_files
     except FileNotFoundError:
         pass
 
@@ -180,3 +178,5 @@ def click(distance):
 
         except Exception as e:
             print(f"An exception has occurred: {e}")
+
+
