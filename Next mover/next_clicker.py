@@ -36,7 +36,7 @@ popup_layout = [
     [Psg.Text("recording...")]
 ]
 background_layout = [
-    [Psg.Image(filename='gradient.png')]]
+    [Psg.Graph(key='graph', background_color='grey', canvas_size=(425, 200), graph_bottom_left=(0,0), graph_top_right=(425, 200))]]
 window = Psg.Window('Selection window', window_layout, finalize=True, no_titlebar=False, grab_anywhere=False, transparent_color=Psg.theme_background_color(), icon="Next-page-256.ico", size=(425, 175))
 init_x, init_y = window.current_location()
 window_background = Psg.Window('Background', background_layout, no_titlebar=True, finalize=True, grab_anywhere=False, margins=(0, 0), element_padding=(0, 0), size=(424, 200), location=(init_x+8, init_y+5))
