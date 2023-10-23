@@ -93,6 +93,7 @@ def window_event_handler(window, file_path, Paused, event, values):
         img_byte_array = io.BytesIO()
         resized_image.save(img_byte_array, format='PNG')
         img_bytes = img_byte_array.getvalue()
+        window.size = (425, 175+new_height)
         window['Image Text'].update(visible=True)
         window['Image'].update(data=img_bytes, visible=True)
         window['Name'].update(value=values['Name'])
