@@ -102,6 +102,7 @@ def check_focus(window, widget, event):
         if event == 'FocusIn':
             window_background.bring_to_front()
             window.bring_to_front()
+            print('active')
 
 
 if lib.extension_remover(path) is []:
@@ -143,26 +144,18 @@ while True:
         continue
 
     elif selected == 'first' or selected == "shortcut":
+        window['shortcut'].update(disabled=True)
         print('setting shortcut')
-        window['shortcut'].update(text='recording...')
-        window.refresh()
+        # window.refresh()
+        print('refreshed')
         keyboard.hook(on_key_event)
-        print('made it')
         keyboard.wait('esc')
-        print('escaped')
         shortcut = '+'.join(pressed_keys)
-        pressed_keys = []
-        print("set shortcut")
         if shortcut != '':
             window['shortcut'].update(text=shortcut)
-            window.refresh()
-        else:
-            window['shortcut'].update(text='Set Pause Shortcut')
-            window.refresh()
         if selected == 'first' and shortcut != '':
             keyboard.add_hotkey(shortcut, toggle)
-        print('closing')
-        print('out')
+        window['shortcut'].update(disabled=False)
         continue
 
     else:
