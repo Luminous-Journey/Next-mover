@@ -6,23 +6,13 @@ from time import sleep, time, ctime
 import PySimpleGUI as Psg
 import keyboard
 import pyautogui as pygui
-from PIL import Image
+from PIL import Image, ImageDraw
 import io
 
 selected = ''
 Paused = False
 pressed_keys = set()
 first = True
-
-
-def adjust_transparency(image, alpha):
-    image = image.convert("RGBA")
-    new_image = Image.new("RGBA", image.size)
-    for x in range(image.width):
-        for y in range(image.height):
-            r, g, b, a = image.getpixel((x, y))
-            new_image.putpixel((x, y), (r, g, b, int(alpha * a)))
-    return new_image
 
 
 def on_key_event(e):
@@ -52,15 +42,46 @@ def store_path(path_to_store, file_path):
     print("Path stored successfully.")
 
 
-def window_event_handler(window, file_path, Paused):
+def create_rounded_gradient(width, height, corner_radius):
+    gradient = Image.new("RGBA", (width, height))
+    draw = ImageDraw.Draw(gradient)
+
+    # Create the gradient
+    for y in range(height):
+        r = int(194 - (194 - 32) * ((height - y) / height))  # Red component
+        g = int(36 + (107 - 36) * ((height - y) / height))  # Green component
+        b = int(255 - (255 - 191) * ((height - y) / height))  # Blue component
+        color = (r, g, b)
+        draw.line([(0, y), (width, y)], fill=color)
+
+    # Create the mask for rounded corners
+    mask = Image.new("L", (width, height), 255)
+    draw_mask = ImageDraw.Draw(mask)
+
+    x0, y0 = 0, height - 2 * corner_radius
+    x1, y1 = 2 * corner_radius, height
+
+    draw_mask.rectangle((0, 0, width, height), fill=0)
+    draw_mask.pieslice((x0, y0, x1, y1), 90, 180, fill=255)
+
+    x0, y0 = width - 2 * corner_radius, height - 2 * corner_radius
+    x1, y1 = width, height
+
+    draw_mask.pieslice((x0, y0, x1, y1), 0, 90, fill=255)
+    draw_mask.rectangle((8, 0, width-corner_radius, y1), fill=255)
+    draw_mask.rectangle((0, 0, width, height-corner_radius), fill=255)
+
+    gradient.putalpha(mask)
+    return gradient
+
+
+def window_event_handler(window, window_background, file_path, Paused, event, values):
     global selected
     global first
 
     if selected is None:
         selected = ''
         return selected
-
-    event, values = window.read(timeout=50)
 
     if event == Psg.WIN_CLOSED:
         return 'exit'
@@ -78,7 +99,6 @@ def window_event_handler(window, file_path, Paused):
             Psg.popup("There are no Valid Files is this directory", title='No Valid files')
 
     elif event == 'shortcut':
-        window['Name'].update(value=values['Name'])
         if first:
             first = not first
             return "first"
@@ -93,9 +113,17 @@ def window_event_handler(window, file_path, Paused):
         new_width = int(original_image.width * 1.025)
         new_height = int(original_image.height * 1.025)
         resized_image = original_image.resize((new_width, new_height), Image.BILINEAR)
-        img_byte_array = io.BytesIO()
-        resized_image.save(img_byte_array, format='PNG')
-        img_bytes = img_byte_array.getvalue()
+        resized_image_array = io.BytesIO()
+        resized_image.save(resized_image_array, format='PNG')
+        img_bytes = resized_image_array.getvalue()
+        width, height = 425, new_height+130
+        rounded_gradient = create_rounded_gradient(width, height+5, 8)
+        gradient_data = io.BytesIO()
+        rounded_gradient.save(gradient_data, format="PNG")
+        gradient_data.seek(0)
+        window_background['canvas'].update(data=gradient_data.read())
+        window.size = (425, 130 + new_height)
+        window_background.size = width, height + 5
         window['Image Text'].update(visible=True)
         window['Image'].update(data=img_bytes, visible=True)
         window['Name'].update(value=values['Name'])
@@ -115,12 +143,12 @@ def window_event_handler(window, file_path, Paused):
             Paused = not Paused
             return Paused
 
-    if Paused is False and not first:
+    if Paused is False:
         window['Pause'].update(button_color=Psg.theme_button_color())
 
 
-    elif Paused is True and not first:
-        window['Pause'].update(button_color=("Black", "White"))
+    elif Paused is True:
+        window['Pause'].update(button_color=('#283b5b', "White"))
 
 
     return selected
@@ -133,6 +161,7 @@ def get_image_files_from_directory(path):
         for file in os.listdir(path):
             if file.lower().endswith(('.png', '.jpg')):
                 image_files.append(os.path.join(path, file))
+        return image_files
     except FileNotFoundError:
         pass
 
@@ -180,3 +209,4 @@ def click(distance):
 
         except Exception as e:
             print(f"An exception has occurred: {e}")
+
