@@ -4,7 +4,6 @@ import pyautogui as pygui
 
 import lib
 
-
 dead = False
 path = ''
 Paused = False
@@ -23,26 +22,29 @@ percentage_threshold = 5
 location = None
 icon = "Next-page-256.ico"
 count = 0
-
 window_layout = [
     [Psg.Text('Please select a directory')],
     [Psg.Input(path, key='Path', readonly=True, enable_events=True, text_color='Black'), Psg.FolderBrowse()],
-    [Psg.Combo(values=value, expand_x=True, enable_events=True, readonly=True, key='Name', disabled=False, background_color='white', text_color='light_blue')],
+    [Psg.Combo(values=value, expand_x=True, enable_events=True, readonly=True, key='Name', disabled=False,
+               background_color='white', text_color='light_blue')],
     [Psg.Text("Selected Image: ", visible=False, key='Image Text'), Psg.Image(key='Image', visible=False)],
     [Psg.Button(enable_events=True, key='Pause', button_text="Pause", disabled=True),
-     Psg.Button(key='shortcut', enable_events=True, button_text="Set Pause shortcut", tooltip="Press to record a shortcut \nPress Esc to stop recording \nExample: ctrl+q")]
+     Psg.Button(key='shortcut', enable_events=True, button_text="Set Pause shortcut",
+                tooltip="Press to record a shortcut \nPress Esc to stop recording \nExample: ctrl+q")]
 ]
-popup_layout = [
-    [Psg.Text("recording...")]
-]
-background_layout = [
-    [Psg.Graph(key='graph', background_color='grey', canvas_size=(425, 200), graph_bottom_left=(0,0), graph_top_right=(425, 200))]]
-window = Psg.Window('Selection window', window_layout, finalize=True, no_titlebar=False, grab_anywhere=False, transparent_color=Psg.theme_background_color(), icon="Next-page-256.ico", size=(425, 175))
+width, initial_height = 425, 200
+gradient_height = initial_height
+background_layout = [[Psg.Canvas(size=(width, gradient_height), background_color='white', key='canvas', pad=(0, 0), expand_y=True)]]
+window = Psg.Window('Selection window', window_layout, finalize=True, no_titlebar=False, grab_anywhere=False,
+                    transparent_color=Psg.theme_background_color(), icon="Next-page-256.ico", size=(425, 125))
 init_x, init_y = window.current_location()
-window_background = Psg.Window('Background', background_layout, no_titlebar=True, finalize=True, grab_anywhere=False, margins=(0, 0), element_padding=(0, 0), size=(424, 200), location=(init_x+8, init_y+5))
+window_background = Psg.Window('Background', background_layout, no_titlebar=True, finalize=True, grab_anywhere=False,
+                               margins=(0, 0), element_padding=(0, 0), size=(424, 125+5), location=(init_x + 8, init_y + 25), background_color='white')
 
 x1, y1 = window_background.current_location()
 x2, y2 = window.current_location()
+
+
 # displayText = r'''
 #        ___         ___  ___   ___   ___  ___   ___
 #   .'| |   |   .'|=|_.' |   | |   | `._|=|   |=|_.'
@@ -85,26 +87,6 @@ def on_key_event(e):
             keyboard.unhook(on_key_event)
 
 
-def show_window2(event):
-    print('focused')
-    window_background.bring_to_front()
-    window.bring_to_front()
-
-
-def focus(window):
-    return window.TKroot.focus_displayof()
-
-
-def check_focus(window, widget, event):
-    global count
-    if widget == window.TKroot:
-        count += 1
-        if event == 'FocusIn':
-            window_background.bring_to_front()
-            window.bring_to_front()
-            print('active')
-
-
 if lib.extension_remover(path) is []:
     Psg.popup("There are no Valid Files is this directory", title='No Valid files')
 
@@ -113,9 +95,15 @@ window.make_modal()
 window.bind('<FocusIn>', 'FocusIn')
 window_background.TKroot.bind('<Configure>', configure)
 
+width, height = window.size
+canvas_elem = window_background['canvas']
+canvas_widget = canvas_elem.Widget
+lib.draw_gradient(canvas_widget, width, height+5)
+
 while True:
     event, values = window.read(timeout=50)
-    selected = lib.window_event_handler(window=window, file_path=filePath, Paused=Paused, event=event, values=values)
+    selected = lib.window_event_handler(window=window, window_background=window_background, file_path=filePath,
+                                        Paused=Paused, event=event, values=values)
 
     if selected == 'exit':
         dead = True
@@ -126,8 +114,8 @@ while True:
         exit()
 
     if event in 'FocusIn':
-        widget = window.user_bind_event.widget
-        check_focus(window, widget, event)
+        window_background.bring_to_front()
+        window.bring_to_front()
 
     if Paused:
         if selected == 'exit':
