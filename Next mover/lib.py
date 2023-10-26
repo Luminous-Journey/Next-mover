@@ -116,15 +116,14 @@ def window_event_handler(window, window_background, file_path, Paused, event, va
         resized_image_array = io.BytesIO()
         resized_image.save(resized_image_array, format='PNG')
         img_bytes = resized_image_array.getvalue()
-        window.size = (425, 130 + new_height)
-        width, height = window.size
-        window_background.size = width-2, height+5
-        corner_radius = 8
-        rounded_gradient = create_rounded_gradient(width-2, height+5, corner_radius)
+        width, height = 425, new_height+130
+        rounded_gradient = create_rounded_gradient(width, height+5, 8)
         gradient_data = io.BytesIO()
         rounded_gradient.save(gradient_data, format="PNG")
         gradient_data.seek(0)
         window_background['canvas'].update(data=gradient_data.read())
+        window.size = (425, 130 + new_height)
+        window_background.size = width, height + 5
         window['Image Text'].update(visible=True)
         window['Image'].update(data=img_bytes, visible=True)
         window['Name'].update(value=values['Name'])
