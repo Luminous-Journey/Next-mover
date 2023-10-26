@@ -6,23 +6,13 @@ from time import sleep, time, ctime
 import PySimpleGUI as Psg
 import keyboard
 import pyautogui as pygui
-from PIL import Image
+from PIL import Image, ImageDraw
 import io
 
 selected = ''
 Paused = False
 pressed_keys = set()
 first = True
-
-
-def adjust_transparency(image, alpha):
-    image = image.convert("RGBA")
-    new_image = Image.new("RGBA", image.size)
-    for x in range(image.width):
-        for y in range(image.height):
-            r, g, b, a = image.getpixel((x, y))
-            new_image.putpixel((x, y), (r, g, b, int(alpha * a)))
-    return new_image
 
 
 def on_key_event(e):
@@ -52,13 +42,37 @@ def store_path(path_to_store, file_path):
     print("Path stored successfully.")
 
 
-def draw_gradient(canvas, width, height):
+def create_rounded_gradient(width, height, corner_radius):
+    gradient = Image.new("RGBA", (width, height))
+    draw = ImageDraw.Draw(gradient)
+
+    # Create the gradient
     for y in range(height):
         r = int(194 - (194 - 32) * ((height - y) / height))  # Red component
         g = int(36 + (107 - 36) * ((height - y) / height))  # Green component
         b = int(255 - (255 - 191) * ((height - y) / height))  # Blue component
-        color = f'#{r:02X}{g:02X}{b:02X}'
-        canvas.create_rectangle(0, y, width, y + 1, fill=color, outline=color)
+        color = (r, g, b)
+        draw.line([(0, y), (width, y)], fill=color)
+
+    # Create the mask for rounded corners
+    mask = Image.new("L", (width, height), 255)
+    draw_mask = ImageDraw.Draw(mask)
+
+    x0, y0 = 0, height - 2 * corner_radius
+    x1, y1 = 2 * corner_radius, height
+
+    draw_mask.rectangle((0, 0, width, height), fill=0)
+    draw_mask.pieslice((x0, y0, x1, y1), 90, 180, fill=255)
+
+    x0, y0 = width - 2 * corner_radius, height - 2 * corner_radius
+    x1, y1 = width, height
+
+    draw_mask.pieslice((x0, y0, x1, y1), 0, 90, fill=255)
+    draw_mask.rectangle((8, 0, width-corner_radius, y1), fill=255)
+    draw_mask.rectangle((0, 0, width, height-corner_radius), fill=255)
+
+    gradient.putalpha(mask)
+    return gradient
 
 
 def window_event_handler(window, window_background, file_path, Paused, event, values):
@@ -90,8 +104,6 @@ def window_event_handler(window, window_background, file_path, Paused, event, va
             return "first"
         return "shortcut"
 
-
-
     elif event == 'Name':
         image_name = values['Name'] + '.png'
         selected = os.path.join(directory, image_name)
@@ -101,21 +113,18 @@ def window_event_handler(window, window_background, file_path, Paused, event, va
         new_width = int(original_image.width * 1.025)
         new_height = int(original_image.height * 1.025)
         resized_image = original_image.resize((new_width, new_height), Image.BILINEAR)
-        img_byte_array = io.BytesIO()
-        resized_image.save(img_byte_array, format='PNG')
-        img_bytes = img_byte_array.getvalue()
-        window.size = (425, 150 + new_height)
-
-        canvas_elem = window_background['canvas']
-        canvas_widget = canvas_elem.Widget
+        resized_image_array = io.BytesIO()
+        resized_image.save(resized_image_array, format='PNG')
+        img_bytes = resized_image_array.getvalue()
+        window.size = (425, 130 + new_height)
         width, height = window.size
-        height += 5
-        window_background.size = width, height
-        canvas_widget.delete("all")
-        canvas_widget.configure(height=height)
-        draw_gradient(canvas_widget, width, height)
-
-
+        window_background.size = width-2, height+5
+        corner_radius = 8
+        rounded_gradient = create_rounded_gradient(width-2, height+5, corner_radius)
+        gradient_data = io.BytesIO()
+        rounded_gradient.save(gradient_data, format="PNG")
+        gradient_data.seek(0)
+        window_background['canvas'].update(data=gradient_data.read())
         window['Image Text'].update(visible=True)
         window['Image'].update(data=img_bytes, visible=True)
         window['Name'].update(value=values['Name'])
