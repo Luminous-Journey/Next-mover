@@ -1,6 +1,7 @@
 import PySimpleGUI as Psg
 import keyboard
 import pyautogui as pygui
+import io
 
 import lib
 
@@ -20,6 +21,7 @@ if value is bool:
     value = ''
 percentage_threshold = 5
 location = None
+trigger = 'right'
 icon = "Next-page-256.ico"
 count = 0
 window_layout = [
@@ -30,16 +32,19 @@ window_layout = [
     [Psg.Text("Selected Image: ", visible=False, key='Image Text'), Psg.Image(key='Image', visible=False)],
     [Psg.Button(enable_events=True, key='Pause', button_text="Pause", disabled=True),
      Psg.Button(key='shortcut', enable_events=True, button_text="Set Pause shortcut",
-                tooltip="Press to record a shortcut \nPress Esc to stop recording \nExample: ctrl+q")]
+                tooltip="Press to record a shortcut \nPress Esc to stop recording \nExample: ctrl+q"), Psg.Button("Right arrow key", k='trigger', tooltip="Click to set trigger key")]
 ]
-width, initial_height = 425, 200
-gradient_height = initial_height
-background_layout = [[Psg.Canvas(size=(width, gradient_height), background_color='white', key='canvas', pad=(0, 0), expand_y=True)]]
+corner_radius = 8
+rounded_gradient = lib.create_rounded_gradient(425, 130, corner_radius)
+image_data = io.BytesIO()
+rounded_gradient.save(image_data, format="PNG")
+image_data.seek(0)
+background_layout = [[Psg.Image(data=image_data.read(), key='canvas')]]
 window = Psg.Window('Selection window', window_layout, finalize=True, no_titlebar=False, grab_anywhere=False,
                     transparent_color=Psg.theme_background_color(), icon="Next-page-256.ico", size=(425, 125))
 init_x, init_y = window.current_location()
 window_background = Psg.Window('Background', background_layout, no_titlebar=True, finalize=True, grab_anywhere=False,
-                               margins=(0, 0), element_padding=(0, 0), size=(424, 125+5), location=(init_x + 8, init_y + 25), background_color='white')
+                               margins=(0, 0), element_padding=(0, 0), size=(425, 130), location=(init_x + 8, init_y + 25), transparent_color=Psg.theme_background_color())
 
 x1, y1 = window_background.current_location()
 x2, y2 = window.current_location()
@@ -95,11 +100,6 @@ window.make_modal()
 window.bind('<FocusIn>', 'FocusIn')
 window_background.TKroot.bind('<Configure>', configure)
 
-width, height = window.size
-canvas_elem = window_background['canvas']
-canvas_widget = canvas_elem.Widget
-lib.draw_gradient(canvas_widget, width, height+5)
-
 while True:
     event, values = window.read(timeout=50)
     selected = lib.window_event_handler(window=window, window_background=window_background, file_path=filePath,
@@ -131,20 +131,30 @@ while True:
         toggle()
         continue
 
-    elif selected == 'first' or selected == "shortcut":
+    elif selected == "shortcut":
         window['shortcut'].update(disabled=True)
-        print('setting shortcut')
-        # window.refresh()
-        print('refreshed')
+        pressed_keys = set()
         keyboard.hook(on_key_event)
         keyboard.wait('esc')
         shortcut = '+'.join(pressed_keys)
         if shortcut != '':
             window['shortcut'].update(text=shortcut)
-        if selected == 'first' and shortcut != '':
             keyboard.add_hotkey(shortcut, toggle)
         window['shortcut'].update(disabled=False)
         continue
+
+    elif selected == 'trigger':
+        # window['trigger'].update(disabled=True)
+        pressed_keys = set()
+        keyboard.hook(on_key_event)
+        keyboard.wait('esc')
+        trigger = '+'.join(pressed_keys)
+        # window['shortcut'].update(disabled=False)
+        if trigger != '':
+            window['trigger'].update(text=trigger)
+        # window.refresh()
+
+
 
     else:
         location = pygui.locateCenterOnScreen(selected, confidence=0.99, grayscale=False, limit=1, minSearchTime=0)
@@ -157,4 +167,4 @@ while True:
         if location is not None and distance > 15:
             pygui.moveTo(location)
 
-        keyboard.add_hotkey("right", lambda: lib.click(distance))
+    keyboard.add_hotkey(trigger, lambda: lib.click(distance))
