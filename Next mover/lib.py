@@ -82,6 +82,9 @@ def window_event_handler(window, window_background, file_path, Paused, event, va
     if selected is None:
         selected = ''
         return selected
+    elif not os.path.isfile(selected):
+        selected = ''
+
 
     if event == Psg.WIN_CLOSED:
         return 'exit'
@@ -99,10 +102,10 @@ def window_event_handler(window, window_background, file_path, Paused, event, va
             Psg.popup("There are no Valid Files is this directory", title='No Valid files')
 
     elif event == 'shortcut':
-        if first:
-            first = not first
-            return "first"
         return "shortcut"
+
+    elif event == 'trigger':
+        return "trigger"
 
     elif event == 'Name':
         image_name = values['Name'] + '.png'
