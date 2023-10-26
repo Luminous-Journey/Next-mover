@@ -52,7 +52,16 @@ def store_path(path_to_store, file_path):
     print("Path stored successfully.")
 
 
-def window_event_handler(window, file_path, Paused, event, values):
+def draw_gradient(canvas, width, height):
+    for y in range(height):
+        r = int(194 - (194 - 32) * ((height - y) / height))  # Red component
+        g = int(36 + (107 - 36) * ((height - y) / height))  # Green component
+        b = int(255 - (255 - 191) * ((height - y) / height))  # Blue component
+        color = f'#{r:02X}{g:02X}{b:02X}'
+        canvas.create_rectangle(0, y, width, y + 1, fill=color, outline=color)
+
+
+def window_event_handler(window, window_background, file_path, Paused, event, values):
     global selected
     global first
 
@@ -81,6 +90,8 @@ def window_event_handler(window, file_path, Paused, event, values):
             return "first"
         return "shortcut"
 
+
+
     elif event == 'Name':
         image_name = values['Name'] + '.png'
         selected = os.path.join(directory, image_name)
@@ -93,7 +104,18 @@ def window_event_handler(window, file_path, Paused, event, values):
         img_byte_array = io.BytesIO()
         resized_image.save(img_byte_array, format='PNG')
         img_bytes = img_byte_array.getvalue()
-        window.size = (425, 175+new_height)
+        window.size = (425, 150 + new_height)
+
+        canvas_elem = window_background['canvas']
+        canvas_widget = canvas_elem.Widget
+        width, height = window.size
+        height += 5
+        window_background.size = width, height
+        canvas_widget.delete("all")
+        canvas_widget.configure(height=height)
+        draw_gradient(canvas_widget, width, height)
+
+
         window['Image Text'].update(visible=True)
         window['Image'].update(data=img_bytes, visible=True)
         window['Name'].update(value=values['Name'])
@@ -179,5 +201,4 @@ def click(distance):
 
         except Exception as e:
             print(f"An exception has occurred: {e}")
-
 
