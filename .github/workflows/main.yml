@@ -24,7 +24,7 @@ jobs:
 
     - name: Build executable with PyInstaller
       run: |
-        pyinstaller --onefile your_script.py  # Replace with your actual script name
+        pyinstaller --onefile /Next-mover/next_clicker.py  # Replace with your actual script name
 
     - name: Create release
       id: create_release
