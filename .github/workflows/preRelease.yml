@@ -2,8 +2,6 @@ name: Python Pre-Release Workflow
 
 on:
   push:
-    branches:
-      - main
 
 jobs:
   release:
