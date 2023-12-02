@@ -2,6 +2,8 @@ name: Python Pre-Release Workflow
 
 on:
   push:
+    branches:
+      - main
 
 jobs:
   release:
@@ -20,14 +22,19 @@ jobs:
       run: |
         python -m pip install pyinstaller
 
+    - name: Download script
+      run: |
+        mkdir scripts
+        curl -LJO https://github.com/Luminous-Journey/Next-mover/raw/main/next_clicker.py -o scripts/next_clicker.py
+
     - name: Build executable with PyInstaller
       run: |
-        pyinstaller --onefile https://github.com/Luminous-Journey/Next-mover/Next-mover/next_clicker.py  # Replace with your actual script name
+        pyinstaller --onefile scripts/next_clicker.py  # Replace with your actual script name
 
     - name: Set tag and release names
       run: |
         echo "::set-env name=TAG_NAME::$(git log -1 --format=%h)"
-        echo "::set-env name=RELEASE_NAME::Release-$(date +'%Y%m%d%H%M%S')"
+        echo "::set-env name=RELEASE_NAME::Pre-release-$(date +'%Y%m%d%H%M%S')"
 
     - name: Create release
       id: create_release
@@ -44,7 +51,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: release-artifact
-        path: dist  https://github.com/Luminous-Journey/Next-mover/
+        path: dist
 
     - name: Deploy
       uses: actions/deploy@v1
