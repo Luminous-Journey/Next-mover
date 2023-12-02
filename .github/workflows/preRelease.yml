@@ -25,11 +25,11 @@ jobs:
     - name: Download script
       run: |
         mkdir scripts
-        curl -LJO https://github.com/Luminous-Journey/Next-mover/raw/main/next_clicker.py -o scripts/next_clicker.py
+        curl -LJO https://raw.githubusercontent.com/Luminous-Journey/Next-mover/master/Next%20mover/next_clicker.py -o scripts/main.py
 
     - name: Build executable with PyInstaller
       run: |
-        pyinstaller --onefile scripts/next_clicker.py  # Replace with your actual script name
+        pyinstaller --onefile scripts/main.py
 
     - name: Set tag and release names
       run: |
