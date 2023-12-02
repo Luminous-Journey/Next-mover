@@ -22,7 +22,7 @@ jobs:
 
     - name: Build executable with PyInstaller
       run: |
-        pyinstaller --onefile /Next-mover/next_clicker.py  # Replace with your actual script name
+        pyinstaller --onefile https://github.com/Luminous-Journey/Next-mover/Next-mover/next_clicker.py  # Replace with your actual script name
 
     - name: Set tag and release names
       run: |
@@ -44,7 +44,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: release-artifact
-        path: dist  # Change to the actual path where PyInstaller puts the executable
+        path: dist  https://github.com/Luminous-Journey/Next-mover/
 
     - name: Deploy
       uses: actions/deploy@v1
