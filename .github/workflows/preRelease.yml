@@ -25,7 +25,7 @@ jobs:
     - name: Download script
       run: |
         mkdir scripts
-        curl -LJO https://raw.githubusercontent.com/Luminous-Journey/Next-mover/master/Next%20mover/next_clicker.py -o scripts/main.py
+        curl -LJO https://raw.githubusercontent.com/${{ github.repository }}/main/Next%20Mover/main.py -o scripts/main.py
 
     - name: Build executable with PyInstaller
       run: |
